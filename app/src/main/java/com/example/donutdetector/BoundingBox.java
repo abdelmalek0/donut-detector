@@ -2,6 +2,9 @@ package com.example.donutdetector;
 
 import java.util.List;
 
+// This class is implemented to add some utilities to the bounding boxes
+// The main function here is the IOU function
+// It calculates the Intersection over Union between two bboxes
 public class BoundingBox {
     private int x, y, w, h;
 

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+// This class is implemented to add or facilitate
+// the task of picking a picture to apply detection on
 public class ImagePicker {
 
     private static final int DEFAULT_MIN_WIDTH_QUALITY = 400;        // min pixels
@@ -73,7 +75,7 @@ public class ImagePicker {
         if (resultCode == Activity.RESULT_OK) {
             Uri selectedImage;
             boolean isCamera = (imageReturnedIntent == null ||
-                    imageReturnedIntent.getData() == null  ||
+                    imageReturnedIntent.getData() == null ||
                     imageReturnedIntent.getData().toString().contains(imageFile.toString()));
             if (isCamera) {     /** CAMERA **/
                 selectedImage = Uri.fromFile(imageFile);
