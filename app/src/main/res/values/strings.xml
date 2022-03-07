@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DonutDetector</string>
+    <string name="home">HOME</string>
+    <string name="time">Time</string>
+</resources>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".PredictionsActivity">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        app:cardCornerRadius="7dp"
+        app:cardBackgroundColor= "@color/design_default_color_primary_variant"
+        android:layout_marginTop="-5dp"
+        tools:context=".TitleFragment">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            app:iconPadding="25dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="#ffffff"
+            android:text="@string/home"
+            android:textAllCaps="true"
+            android:textSize="15sp"
+            app:iconTint="#FFFFFF"
+            app:icon="@drawable/ic_baseline_arrow_back_ios_24"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+            />
+
+
+    </com.google.android.material.card.MaterialCardView>
+    <TextView
+        android:textSize="25sp"
+        android:textColor="@color/black"
+        android:textAlignment="center"
+        android:layout_marginVertical="10dp"
+        android:text="Top 3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </TextView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/top3"
+        android:layout_marginVertical="10dp"
+        android:orientation="horizontal"
+        android:scrollbars="horizontal"
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </androidx.recyclerview.widget.RecyclerView>
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <TextView
+
+        android:layout_marginVertical="10dp"
+        android:textSize="25sp"
+        android:textColor="@color/black"
+        android:textAlignment="center"
+        android:text="Least Likely"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </TextView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/top8"
+        android:layout_marginVertical="10dp"
+        android:orientation="horizontal"
+        android:scrollbars="horizontal"
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <TextView
+        android:id="@+id/Time"
+        android:textAlignment="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/time"
+        android:textSize="25sp" />
+
+</LinearLayout>
