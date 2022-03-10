@@ -48,7 +48,7 @@ public class SmartDetector {
     public final static String MODEL_PROCESSING_OTHERS = "";
 
     // Image variables
-    // final int cropSize = 1000;
+    final int cropSize = 900;
     final int inputSizeRpn = 320;
     final int inputSizeEMBD = 100;
     final int pixelSize = 3;
@@ -59,7 +59,9 @@ public class SmartDetector {
 
     // Detection variables
     float iou_threshold = 0.2f;
-    float confidence_threshold = 0.5f;
+    float iou_threshold_intra_class = 0.15f;
+    float confidence_threshold = 0.33f;
+    float class_confidence = 0.0f;
 
     // Anchors variables
     int anchorDimension = 20;
@@ -135,11 +137,13 @@ public class SmartDetector {
         float[][] bboxes = null;
         float[][] embeddings = null;
         Pair<String, Float>[] res = null;
+        float[] similarities = null;
+        String[] classes = null;
         int counter = 0;
         int j = 0;
 
         // Image preprocessing
-        bitmap = imagePreprocessing(bitmap, inputSizeRpn, inputSizeRpn);
+        bitmap = imagePreprocessing(bitmap, cropSize, inputSizeRpn);
 
         // Bboxes generation
         try {
@@ -158,15 +162,26 @@ public class SmartDetector {
 
         // Similarities generation
         res = new Pair[counter];
+        similarities = new float[counter];
+        classes = new String[counter];
+        Log.d("counter", String.valueOf(counter));
+        Log.d("counter", String.valueOf(embeddings.length));
+        Log.d("counter", String.valueOf(embeddings[0].length));
         j = 0;
         try {
             for (float[] embedding : embeddings) {
                 res[j] = inference(embedding);
+                classes[j] = res[j].first;
+                similarities[j] = res[j].second;
                 j++;
             }
         } catch (IOException e) {
             Log.e(this.getClass().getName(), "Generating the similarities :" + e);
         }
+
+        // overlapping bboxes elimination
+        bboxes = tool_nms(bboxes, similarities, iou_threshold_intra_class, classes);
+
         return new Pair(bboxes, res);
     }
 
@@ -229,7 +244,7 @@ public class SmartDetector {
                 }
             }
         lastBBoxesGenerationTime = ((System.nanoTime() - startTime) / timeFactor);
-        return tool_nms(bboxes, scores, iou_threshold);
+        return tool_nms(bboxes, scores, iou_threshold, null);
     }
 
     private float[][] get_embeddings(Bitmap bitmap, float[][] bboxes, int counter) {
@@ -239,10 +254,12 @@ public class SmartDetector {
         float[][] embeddings = new float[counter][embeddingSize];
         int j = 0;
         Bitmap bt = null;
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
 
         for (int i = 0; i < bboxes.length; i++) {
             // crop the needed part of the image
-            bt = Bitmap.createBitmap(bitmap, Math.round(bboxes[i][0]), Math.round(bboxes[i][1]), Math.round(bboxes[i][2]), Math.round(bboxes[i][3]));
+            bt = Bitmap.createBitmap(bitmap, (int) Math.max(Math.floor(bboxes[i][0]),0), (int) Math.max(Math.floor(bboxes[i][1]),0), (int) Math.min(Math.ceil(bboxes[i][2]),width - Math.ceil(bboxes[i][0])), (int) Math.min(Math.ceil(bboxes[i][3]), height - Math.ceil(bboxes[i][1])) );
             bt = Bitmap.createScaledBitmap(bt, inputSizeEMBD, inputSizeEMBD, false);
 
             // prepare the input
@@ -289,6 +306,9 @@ public class SmartDetector {
         lastHeadComparaisonTime = ((System.nanoTime() - startTime) / timeFactor);
 
         Map.Entry<String, Float> entry = (Map.Entry<String, Float>) sortedPredictions.entrySet().iterator().next();
+        if (entry.getValue() < class_confidence){
+            return new Pair("Not sure", entry.getValue());
+        }
         return new Pair(entry.getKey(), entry.getValue());
     }
 
@@ -304,10 +324,12 @@ public class SmartDetector {
 
     /* ***** Bboxes operations  ***** */
 
-    private float[][] tool_nms(float[][] bboxes, float[] scores, float threshold) {
+    private float[][] tool_nms(float[][] bboxes, float[] scores, float threshold, String[] classes) {
+
         int y = 0;
         int counter = 0;
         double iou_result;
+        String thisClass = "";
 
         // Intialize some variables
         int[] indexes = ArrayUtils.argsort(scores);
@@ -317,6 +339,7 @@ public class SmartDetector {
         // Detecting the non-necessary bboxes using the iou metric
         for (int index = indexes.length - 1; index >= 0; index--) {
             int i = indexes[index];
+            if(classes != null) thisClass = classes[i];
             if (complete_bool[i] == 0) {
                 complete_bool[i] = 2;
                 counter++;
@@ -329,7 +352,7 @@ public class SmartDetector {
                             Math.round(bboxes[j][2]), Math.round(bboxes[j][3]));
                     iou_result = BoundingBox.IOU(bbox, compare_bbox);
                     if (iou_result > threshold && complete_bool[j] == 0) {
-                        complete_bool[j] = 1;
+                        if(classes == null || classes[j] == thisClass) complete_bool[j] = 1;
                     }
                 }
             }
@@ -359,11 +382,11 @@ public class SmartDetector {
     /* ***** Bitmap operations  ***** */
 
     private Bitmap imagePreprocessing(Bitmap bitmap, int cropSize, int inputSize) {
-        /*if (bitmap.getWidth() > cropSize && bitmap.getHeight() > cropSize) {
+        if (bitmap.getWidth() > cropSize && bitmap.getHeight() > cropSize) {
             bitmap = Bitmap.createBitmap(bitmap,
                     (bitmap.getWidth() - cropSize) / 2, (bitmap.getHeight() - cropSize) / 2,
                     cropSize, cropSize);
-        }*/
+        }
         return Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, false);
     }
 

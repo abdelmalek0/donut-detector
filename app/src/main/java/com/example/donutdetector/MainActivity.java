@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     // Prediction variables
     SmartDetector smartDetector;
     final float inputSizeRpn = 320.0f;
+    final float cropSize = 900.0f;
 
     // Embeddings variables
     final int embeddingSize = 256;
@@ -99,18 +100,27 @@ public class MainActivity extends AppCompatActivity {
 
                     // Drawing the bounding boxes
                     Bitmap dst = main_bitmap.copy(main_bitmap.getConfig(), true);
-                    float factor_h = dst.getHeight() / inputSizeRpn;
-                    float factor_w = dst.getWidth() / inputSizeRpn;
+                    float intermediate_h = cropSize, intermediate_w = cropSize;
+                    if (dst.getWidth() < cropSize || dst.getHeight() < cropSize) {
+                        intermediate_h = dst.getHeight();
+                        intermediate_w = dst.getWidth();
+                    }
+
+                    float factor_h = intermediate_h / inputSizeRpn;
+                    float factor_w = intermediate_w / inputSizeRpn;
+
+                    float shift_crop_h = (dst.getHeight() - intermediate_h) / 2;
+                    float shift_crop_w = (dst.getWidth() - intermediate_w) / 2;
 
                     Canvas canvas = new Canvas(dst);
                     Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-                    paint.setColor(Color.BLACK);
+                    paint.setColor(Color.RED);
                     paint.setStyle(Paint.Style.STROKE);
 
                     for (int index = 0; index < bboxes.length; index++) {
-                        canvas.drawRect(bboxes[index][0] * factor_w, bboxes[index][1] * factor_h, (bboxes[index][0] + bboxes[index][2]) * factor_w, (bboxes[index][1] + bboxes[index][3]) * factor_h, paint);
-                        canvas.drawText((String) results[index].first, (bboxes[index][0] * factor_w) - 5, (bboxes[index][1] * factor_h) - 5, paint);
+                        canvas.drawRect((bboxes[index][0] * factor_w) + shift_crop_w, (bboxes[index][1] * factor_h) + shift_crop_h , ((bboxes[index][0] + bboxes[index][2]) * factor_w) +shift_crop_w, ((bboxes[index][1] + bboxes[index][3]) * factor_h) + shift_crop_h, paint);
+                        canvas.drawText(((results[index].first == "Not sure") ? "Not sure" : results[index].first + ":" + results[index].second.toString()), (bboxes[index][0] * factor_w) +shift_crop_w - 5, (bboxes[index][1] * factor_h) + shift_crop_h - 5, paint);
                     }
                     imageView.setImageBitmap(dst);
 
